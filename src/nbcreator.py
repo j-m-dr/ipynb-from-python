@@ -13,7 +13,13 @@ class NotebookDocument(object):
 
     def __init__(self):
         self._notebook = new_notebook()
+    
+    def __setitem__(self, key, value):
+        self._notebook[key] = value
 
+    def __getitem__(self, item):
+        return self._notebook.get(item)
+    
     def add_cell(self, cell):
         if isinstance(cell, NotebookNode):
             self._notebook['cells'].append(cell)
@@ -40,7 +46,7 @@ class _AbstractCell(object):
         elif cell_type == 'markdown':
             self._cell = new_markdown_cell(str(content))
         elif cell_type == 'raw':
-            self._cell = new_markdown_cell(str(content))
+            self._cell = new_raw_cell(str(content))
         else:
             raise ValueError("Unrecognized cell type: {}" % cell_type)
 
@@ -82,6 +88,9 @@ class RawCell(_AbstractCell):
 
 
 def __example():
+    # Cell 0
+    markdown_cell = MarkdownCell()
+    markdown_cell.add_line('This is a nbcreator test')
     # Cell 1
     code_cell_0 = CodeCell()
     code_cell_0.add_line('import numpy as np')
@@ -95,6 +104,7 @@ def __example():
 
     # Document
     notebook = NotebookDocument()
+    notebook.add_cell(markdown_cell)
     notebook.add_cell(code_cell_0)
     notebook.add_cell(code_cell_1)
 
