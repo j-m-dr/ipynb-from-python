@@ -2,7 +2,7 @@
 http://nbformat.readthedocs.io/en/latest/format_description.html
 """
 
-import nbformat
+from nbformat import write as write_nb
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell, new_raw_cell
 from nbformat.notebooknode import NotebookNode
 
@@ -13,32 +13,32 @@ class NotebookDocument(object):
 
     def __init__(self):
         self._notebook = new_notebook()
-    
+
     def __setitem__(self, key, value):
         self._notebook[key] = value
 
     def __getitem__(self, item):
         return self._notebook.get(item)
-    
+
     def add_cell(self, cell):
         if isinstance(cell, NotebookNode):
             self._notebook['cells'].append(cell)
-        elif isinstance(cell, _AbstractCell):
+        elif isinstance(cell, _Cell):
             self._notebook['cells'].append(cell.get_cell())
         else:
-            raise ValueError()
+            raise ValueError('Type of input cell is not valid')
 
     def save_notebook(self, path, add_ext=False):
             if add_ext:
                 path += self.EXT
             try:
-                nbformat.write(self._notebook, path)
+                write_nb(self._notebook, path)
                 return True
             except IOError('Error creating the document'):
                 return False
 
 
-class _AbstractCell(object):
+class _Cell(object):
 
     def __init__(self, cell_type='code', content=''):
         if cell_type == 'code':
@@ -48,7 +48,7 @@ class _AbstractCell(object):
         elif cell_type == 'raw':
             self._cell = new_raw_cell(str(content))
         else:
-            raise ValueError("Unrecognized cell type: {}" % cell_type)
+            raise ValueError("Unrecognized cell type: {}".format(cell_type))
 
     def __setitem__(self, key, value):
         self._cell[key] = value
@@ -63,42 +63,39 @@ class _AbstractCell(object):
         return self._cell
 
 
-class CodeCell(_AbstractCell):
+def code_cell(content=''):
     """
-    Clase que contiene una celda de codigo
+    Devuelve una nueva celda de codigo
     """
-    def __init__(self, content=''):
-        super(CodeCell, self).__init__('code', content)
+    return _Cell('code', content)
 
 
-class MarkdownCell(_AbstractCell):
+def markdown_cell(content=''):
     """
-    Clase que contiene una celda markdown
+    Devuelve una nueva celda markdown
     """
-    def __init__(self, content=''):
-        super(MarkdownCell, self).__init__('markdown', content)
+    return _Cell('markdown', content)
 
 
-class RawCell(_AbstractCell):
+def raw_cell(content=''):
     """
-    Clase que contiene una celda raw
+    Devuelve una nueva celda raw
     """
-    def __init__(self, content=''):
-        super(RawCell, self).__init__('raw', content)
+    return _Cell('raw', content)
 
 
 def __example():
     # Cell 0
-    markdown_cell = MarkdownCell()
-    markdown_cell.add_line('This is a nbcreator test')
+    markdown_cell_0 = markdown_cell()
+    markdown_cell_0.add_line('This is a nbcreator test')
     # Cell 1
-    code_cell_0 = CodeCell()
+    code_cell_0 = code_cell()
     code_cell_0.add_line('import numpy as np')
     code_cell_0.add_line('m0 = np.matrix([[1, 2], [3, 4]])')
     code_cell_0.add_line('m1 = np.matrix([[4, 3], [2, 1]])')
 
     # Cell 2
-    code_cell_1 = CodeCell()
+    code_cell_1 = code_cell()
     code_cell_1.add_line('m0_mul_m1 = m0 * m1')
     code_cell_1.add_line('print(\'Result {}\'.format(m0_mul_m1))')
 
@@ -112,5 +109,3 @@ def __example():
         print('Saved')
     else:
         print('IO Error')
-
-
