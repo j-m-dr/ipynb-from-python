@@ -34,7 +34,8 @@ class NotebookDocument(object):
             try:
                 write_nb(self._notebook, path)
                 return True
-            except IOError('Error creating the document'):
+            except IOError:
+                print('Error creating the ipynb document')
                 return False
 
 
